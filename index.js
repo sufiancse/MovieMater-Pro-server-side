@@ -12,17 +12,20 @@ app.use(express.json());
 
 const verifyToken = async (req, res, next) =>{
   const authorization = req.headers.authorization
+
   if(!authorization){
     return res.status(401).send({message: 'unauthorized access'})
   }
+
   const token = authorization.split(" ")[1]
+
   try{
     const decoded = await admin.auth().verifyIdToken(token)
-    // console.log('inside token', decoded)
     req.token_email = decoded.email
 
     next()
   }
+
   catch(err){
     return res.status(401).send({message: 'unauthorized access.'})
   }
@@ -70,6 +73,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/api/movies/my-collections',verifyToken, async (req, res) => {
+      const email = req.query.email
+      const result = await movieCollections.find({addedBy: email}).toArray()
+      res.send(result)
+    })
+
     app.get('/api/movies/:id', async (req, res) => {
         const id = req.params.id
         const query = {_id: new ObjectId(id)}
@@ -77,8 +86,10 @@ async function run() {
         res.send(result)
     })
 
+    
+
     // app.put(edit)
-    app.put('/movies/update/:id', async (req, res) => {
+    app.put('/movies/update/:id',verifyToken, async (req, res) => {
         const id = req.params.id
         const data = req.body
         const filter = {_id: new ObjectId(id)}
