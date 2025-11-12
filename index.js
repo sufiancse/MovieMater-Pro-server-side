@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,6 +26,7 @@ async function run() {
     const movieCollections = db.collection("movies");
 
     // movie collections
+    // app.get
     app.get("/api/movies", async (req, res) => {
       const cursor = movieCollections.find();
       const result = await cursor.toArray();
@@ -44,6 +45,34 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/api/movies/:id', async (req, res) => {
+        const id = req.params.id
+        const query = {_id: new ObjectId(id)}
+        const result = await movieCollections.findOne(query)
+        res.send(result)
+    })
+
+    // app.put(edit)
+    app.put('/movies/update/:id', async (req, res) => {
+        const id = req.params.id
+        const data = req.body
+        const filter = {_id: new ObjectId(id)}
+        const update ={
+            $set: data,
+        }
+        const result = await movieCollections.updateOne(filter,update)
+        res.send(result)
+    })
+
+    // app.delete(remove)
+    app.delete('/movies/:id', async (req, res) => {
+        const id = req.params.id
+        const filter = {_id: new ObjectId(id)}
+        const result = await movieCollections.deleteOne(filter)
+        res.send(result)
+    })
+
+    // app.post(client to database)
     app.post("/movies", async (req, res) => {
       const newMovie = req.body;
       const result = await movieCollections.insertOne(newMovie)
