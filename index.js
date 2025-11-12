@@ -2,11 +2,36 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+const verifyToken = async (req, res, next) =>{
+  const authorization = req.headers.authorization
+  if(!authorization){
+    return res.status(401).send({message: 'unauthorized access'})
+  }
+  const token = authorization.split(" ")[1]
+  try{
+    const decoded = await admin.auth().verifyIdToken(token)
+    // console.log('inside token', decoded)
+    req.token_email = decoded.email
+
+    next()
+  }
+  catch(err){
+    return res.status(401).send({message: 'unauthorized access.'})
+  }
+}
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vaa5xch.mongodb.net/?appName=Cluster0`;
 
@@ -72,8 +97,8 @@ async function run() {
         res.send(result)
     })
 
-    // app.post(client to database)
-    app.post("/movies", async (req, res) => {
+    // app.post(data send client to database)
+    app.post("/movies",verifyToken, async (req, res) => {
       const newMovie = req.body;
       const result = await movieCollections.insertOne(newMovie)
       res.send(result)
