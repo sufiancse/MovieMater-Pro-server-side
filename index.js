@@ -33,7 +33,7 @@ async function run() {
     });
 
     app.get("/api/latest-movies", async (req, res) => {
-      const cursor = movieCollections.find().sort({ releaseYear: -1 }).limit(6);
+      const cursor = movieCollections.find().sort({ releaseYear: 'desc' }).limit(6);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -44,6 +44,11 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/movies", async (req, res) => {
+      const newMovie = req.body;
+      const result = await movieCollections.insertOne(newMovie)
+      res.send(result)
+    });
 
     // testing database, comment this section before deploy in vercel
     await client.db("admin").command({ ping: 1 });
