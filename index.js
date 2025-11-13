@@ -45,7 +45,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("movie-master-pro-db");
     const movieCollections = db.collection("movies");
@@ -175,7 +175,7 @@ async function run() {
     });
 
     // testing database, comment this section before deploy in vercel
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
